@@ -92,6 +92,11 @@ We expressed sincerely gratitude for the projects listed following:
 - The Team of InternVL for apis.
 
 
+## 📧 Contact
+If you have any questions, feel free to contact Fanqing Meng with mengfanqing33@gmail.com
+
+
+
 ## 🖊️ Citation 
 If you feel MMIU useful in your project or research, please kindly use the following BibTeX entry to cite our paper. Thanks!
 
