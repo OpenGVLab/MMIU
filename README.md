@@ -10,9 +10,9 @@
 </p>
 
 
-This repository is the official implementation of [MMIU](https://arxiv.org/abs/2404.16006). 
+This repository is the official implementation of [MMIU](https://arxiv.org/abs/2408.02718). 
 
-> [MMIU: Multimodal Multi-image Understanding for Evaluating Large Vision-Language Models](https://arxiv.org/abs/2404.16006)  
+> [MMIU: Multimodal Multi-image Understanding for Evaluating Large Vision-Language Models](https://arxiv.org/abs/2408.02718)  
 > Fanqing Meng<sup>\*</sup>, Jin Wang<sup>\*</sup>, Chuanhao Li<sup>\*</sup>, Quanfeng Lu, Hao Tian, Jiaqi Liao, Xizhou Zhu, Jifeng Dai,  Yu Qiao, Ping Luo, Kaipeng Zhang<sup>\#</sup>, Wenqi Shao<sup>\#</sup>  
 > <sup>\*</sup> MFQ, WJ and LCH contribute equally.  
 > <sup>\#</sup> SWQ (shaowenqi@pjlab.org.cn) and ZKP (zhangkaipeng@pjlab.org.cn) are correponding authors. 
@@ -23,7 +23,7 @@ This repository is the official implementation of [MMIU](https://arxiv.org/abs/2
 
 - `2024/08/05`: The datasets and codes are coming soon! 🔥🔥🔥
 
-- `2024/08/05`: The technical report of [MMIU](https://arxiv.org/abs/2404.16006) is released! And check our [project page](https://mmiu-bench.github.io/)! 🔥🔥🔥
+- `2024/08/05`: The technical report of [MMIU](https://arxiv.org/abs/2408.02718) is released! And check our [project page](https://mmiu-bench.github.io/)! 🔥🔥🔥
 
 
 ## Introduction
