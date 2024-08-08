@@ -7,7 +7,6 @@
 <p align="left">
   <a href="https://mmiu-bench.github.io/"><b>HomePage</b></a> |
   <a href="https://arxiv.org/abs/2408.02718"><b>arXiv</b></a> |
-  <a href="https://huggingface.co/datasets/FanqingM/MMIU"><b>Dataset</b></a> |
   <a href="#🖊️-citation"><b>Citation</b></a> <br>
 </p>
 
