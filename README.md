@@ -19,7 +19,7 @@ This repository is the official implementation of [MMIU](https://arxiv.org/abs/2
 
 ## 💡 News
 
-
+- `2024/08/08`: We have released the MMIU in https://huggingface.co/datasets/FanqingM/MMIU !! Check it out!! 🔥🔥🔥
 
 - `2024/08/05`: The datasets and codes are coming soon! 🔥🔥🔥
 
