@@ -7,6 +7,7 @@
 <p align="left">
   <a href="https://mmiu-bench.github.io/"><b>HomePage</b></a> |
   <a href="https://arxiv.org/abs/2408.02718"><b>arXiv</b></a> |
+  <a href="https://huggingface.co/datasets/FanqingM/MMIU-Benchmark"><b>Dataset</b></a> |
   <a href="#🖊️-citation"><b>Citation</b></a> <br>
 </p>
 
@@ -20,6 +21,7 @@ This repository is the official implementation of [MMIU](https://arxiv.org/abs/2
 
 ## 💡 News
 
+-`2024/08/08`: We have released the dataset at https://huggingface.co/datasets/FanqingM/MMIU-Benchmark 🔥🔥🔥
 
 - `2024/08/05`: The datasets and codes are coming soon! 🔥🔥🔥
 
