@@ -1,19 +1,31 @@
 import json
 import os
 import pandas as pd
+import argparse
 
-directorys = [
-    'xx'
-]
+parser = argparse.ArgumentParser(description='Calculate accuracy scores from MMIU evaluation results')
+parser.add_argument('--directories', type=str, nargs='+', default=['./results'], help='Directories containing results (default: ./results)')
+parser.add_argument('--models', type=str, nargs='+', default=None, help='Model names to evaluate (default: all models found)')
+parser.add_argument('--output', type=str, default='./Accuracy_data_all.csv', help='Output CSV file path')
+args = parser.parse_args()
 
+directorys = args.directories
 
 # Initialize global DataFrames to store data
 global_accuracy_df = pd.DataFrame()
 
 for directory in directorys:
+    if not os.path.exists(directory):
+        print(f"Warning: Directory '{directory}' does not exist, skipping...")
+        continue
+    
     tasknames = sorted(os.listdir(directory))
 
-    modelnames = ['GPT4o','Claude3','Gemini','Gemini1.0','Llava-interleave','Mantis','InternVL2','internvl1.5-chat','qwen_chat', 'qwen_base', 'idefics_9b_instruct','flamingov2', 'deepseek_vl_1.3b', 'XComposer2_1.8b', 'deepseek_vl_7b', 'idefics2_8b', 'XComposer2']
+    # Default model names if not specified
+    if args.models:
+        modelnames = args.models
+    else:
+        modelnames = ['GPT4o','Claude3','Gemini','Gemini1.0','Llava-interleave','Mantis','InternVL2','internvl1.5-chat','qwen_chat', 'qwen_base', 'idefics_9b_instruct','flamingov2', 'deepseek_vl_1.3b', 'XComposer2_1.8b', 'deepseek_vl_7b', 'idefics2_8b', 'XComposer2', 'qwen3-vl']
     # modelnames = ['Llava-interleave']
     # Initialize dictionaries to store data
     accuracy_data = {modelname: [] for modelname in modelnames}
@@ -69,12 +81,24 @@ for directory in directorys:
     # Append to global DataFrames
     global_accuracy_df = pd.concat([global_accuracy_df, accuracy_df])
 
-# Calculate the overall average for each model
-global_accuracy_df.loc['Overall'] = global_accuracy_df.mean()
+# If multiple directories were provided, average results for duplicate task names
+if len(directorys) > 1:
+    # Group by task name and average across directories (skip NaN values)
+    global_accuracy_df = global_accuracy_df.groupby(global_accuracy_df.index).mean(skipna=True)
+
+# Calculate the overall average for each model (skip NaN values)
+global_accuracy_df.loc['Overall'] = global_accuracy_df.mean(skipna=True)
+
+# Print accuracy results
+print("\n" + "="*80)
+print("ACCURACY RESULTS")
+print("="*80)
+print(global_accuracy_df.to_string())
+print("="*80)
 
 # Save global DataFrames to CSV files
-global_accuracy_df.to_csv('./Accuracy_data_all.csv')
+global_accuracy_df.to_csv(args.output)
 
-print("Global DataFrames have been saved as CSV files.")
+print(f"\nAccuracy results have been saved to: {args.output}")
 
 

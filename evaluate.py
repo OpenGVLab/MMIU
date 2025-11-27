@@ -2,6 +2,7 @@ import json
 import os
 import base64
 import time
+import argparse
 from openai import OpenAI
 from multiprocessing import Pool
 import re
@@ -9,10 +10,9 @@ import re
 def remove_punctuation(text):
     return re.sub(r'^[.,()]+|[.,()]+$', '', text)
 
-client = OpenAI(
-    base_url='xx',
-    api_key='xx',
-)
+# Default API configuration
+default_base_url = 'https://api.fireworks.ai/inference/v1'
+default_api_key = os.getenv('FIREWORKS_API_KEY', None)
 
 def build_prompt(question, options, prediction):
     tmpl = (
@@ -31,18 +31,41 @@ def build_prompt(question, options, prediction):
     return tmpl.format(question, options, prediction)
 
 
-def process_data(args):
-    data_tmp, modelname = args
+def process_data(args_tuple):
+    data_tmp, modelname, base_url, api_key = args_tuple
     client = OpenAI(
     # base_url='https://kkkc.net/v1',
     # api_key='sk-YJaHfazVSf2WDkAl1bAdE17bF3Ae4923Ba888293B31d13C4',
-    base_url='xx',
-    api_key='xx',
+    base_url=base_url,
+    api_key=api_key,
     )
 
     options = data_tmp['options']
     question = data_tmp['question']
-    prediction = data_tmp[modelname].strip()
+    
+    # Try to find the prediction key - the JSON might have full path or basename as key
+    prediction_key = None
+    if modelname in data_tmp:
+        prediction_key = modelname
+    else:
+        # Try basename if modelname is a full path
+        basename = os.path.basename(modelname) if os.path.sep in modelname else modelname
+        if basename in data_tmp:
+            prediction_key = basename
+        else:
+            # Try to find any key that ends with the basename (for full paths in JSON)
+            for key in data_tmp.keys():
+                if key.endswith(basename) or os.path.basename(key) == basename:
+                    prediction_key = key
+                    break
+    
+    if prediction_key is None or prediction_key not in data_tmp:
+        available_keys = [k for k in data_tmp.keys() if k not in ['options', 'question', 'context', 'input_image_path', 'task', 'output', 'visual_input_component', 'source']]
+        print(f"Warning: Key for model '{modelname}' not found in data. Available model keys: {available_keys}")
+        data_tmp[f'{modelname}_choice'] = 'Z'
+        return data_tmp
+    
+    prediction = data_tmp[prediction_key].strip()
 
     if modelname == 'Claude3' and "copyrighted material" in prediction:
         data_tmp[f'{modelname}_choice'] = 'Z'
@@ -95,58 +118,60 @@ def process_data(args):
 
 
 def main():
-    # modelnames = ['internvl1.5-chat']
-    # modelnames = ['Gemini','Gemini1.0']
-    # modelnames = ['GPT4o','Gemini','Gemini1.0']
-    # modelnames = ['Llava-interleave']
-    modelnames = ['Llava-interleave', 'qwen_chat', 'XComposer2', 'deepseek_vl_7b', 'qwen_base', 'XComposer2_1.8b', 'flamingov2', 'deepseek_vl_1.3b', 'internvl1.5-chat', 'idefics2_8b', 'Mantis', 'idefics_9b_instruct']
-    directorys = ['xx','xx']
+    parser = argparse.ArgumentParser(description='Convert model predictions to multiple choice answers')
+    parser.add_argument('--directories', type=str, nargs='+', default=['./results'], help='Directories containing results (default: ./results)')
+    parser.add_argument('--models', type=str, nargs='+', default=['qwen3-vl'], help='Model names to evaluate (default: qwen3-vl)')
+    parser.add_argument('--workers', type=int, default=10, help='Number of parallel workers (default: 10)')
+    parser.add_argument('--base-url', type=str, default=None, help=f'OpenAI API base URL (default: {default_base_url})')
+    parser.add_argument('--api-key', type=str, default=None, help='OpenAI API key (default: from FIREWORKS_API_KEY env var)')
+    args = parser.parse_args()
+    
+    modelnames = args.models
+    directorys = args.directories
+    base_url = args.base_url or default_base_url
+    api_key = args.api_key or default_api_key
+    
+    if not api_key:
+        print("Error: API key not provided. Set FIREWORKS_API_KEY environment variable or use --api-key")
+        return
    
     for directory in directorys:
+        if not os.path.exists(directory):
+            print(f"Warning: Directory '{directory}' does not exist, skipping...")
+            continue
+            
         tasknames = os.listdir(directory)
         for taskname in tasknames:
-            
-            path = os.path.join(directory,taskname)
             for modelname in modelnames:
-                path = os.path.join(directory,taskname)
-                path = os.path.join(path,modelname)
+                path = os.path.join(directory, taskname, modelname)
 
-                print(taskname,modelname)
-                json_path = os.path.join(path,'metadata_info.json')
-                
-
+                print(taskname, modelname)
+                json_path = os.path.join(path, 'metadata_info.json')
 
                 if not os.path.exists(json_path):
-                    print(json_path,' not exist')
+                    print(json_path, ' not exist')
                     continue
 
-                # output_json_path = os.path.join(path,'metadata_info_choice.json')
-                output_json_path = os.path.join(path,'metadata_info_choice.json')
-                # if os.path.exists(output_json_path) or os.path.exists(output_json_path1):
+                output_json_path = os.path.join(path, 'metadata_info_choice.json')
                 if os.path.exists(output_json_path):
                     print(output_json_path, ' already have')
                     continue
 
-                with open(json_path,'r') as f:
+                with open(json_path, 'r') as f:
                     data = json.load(f)
 
-                        # 将data和modelname打包成元组列表
-                data_with_modelname = [(data_tmp, modelname) for data_tmp in data]
+                # Pack data with modelname, base_url, and api_key
+                data_with_args = [(data_tmp, modelname, base_url, api_key) for data_tmp in data]
 
-                
-
-                pool = Pool(processes=10)  # Adjust the number of processes as per your machine's capability
-                # result = pool.map(process_data, data, modelname)
-                # 使用map方法传递打包后的元组列表
-                result = pool.map(process_data, data_with_modelname)
-        
-                # output_json_path = os.path.join(path,'metadata_info_choice.json')
+                pool = Pool(processes=args.workers)
+                result = pool.map(process_data, data_with_args)
+                pool.close()
+                pool.join()
 
                 with open(output_json_path, 'w') as f:
                     json.dump(result, f)
 
-                print(taskname,modelname,'OK')
-            
+                print(taskname, modelname, 'OK')
 
 
 if __name__ == '__main__':
